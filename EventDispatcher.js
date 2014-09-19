@@ -3,65 +3,86 @@
  */
 function EventDispatcher() {
     this.events = {};
-    this.onceEvents = {};
 }
 
 /**
- * @param {EventDispatcher.event} event 
+ * @param {EventDispatcher.name} name
  * @param {EventDispatcher.handlerCallback} callback
+ * @param {object} [context=null] context to excecute the handler in?
  * @param {boolean} [once=false] unsubscribe after the first trigger?
- * @todo add a "context" var. we'll proxy it for them.
  * @throws TypeError
  */
-EventDispatcher.prototype.on = function(event, callback, once) {
-    event = String(event);
-    if (!event) {
-        throw new TypeError('event should be a non-empty string');
+EventDispatcher.prototype.on = function(name, callback, context, once) {
+
+    var event = new Event(name, callback, context, once);
+    if (!this.events.hasOwnProperty(event.name)) {
+        this.events[event.name] = [event];
+    } else {
+        this.events[event.name].push(event);
     }
-    if (typeof callback !== 'function') {
-        throw new TypeError('callback should be callable');
-    }
-    // assign handler
-    var queue = once ? this.onceListeners : this.listeners;
-    if (!queue.hasOwnProperty(event)) {
-        queue[event] = [];
-    }
-    queue[event].push(callback);
     return this;
 };
 
 /**
  * Courtesy method for one-shot binds.
- * @param {EventDispatcher.event} event 
+ * @param {EventDispatcher.name} event
  * @param {EventDispatcher.handlerCallback} callback
  * @see EventDispatcher.on()
  */
-EventDispatcher.prototype.once = function(event, callback) {
-    return this.on(event, callback, true);
+EventDispatcher.prototype.once = function(event, callback, context) {
+    return this.on(event, callback, context, true);
 };
 
 /**
- * @param var {string} event The name of the event being triggered.
+ * @param var {string} name The name of the event being triggered.
  * @param {*} data Arbitrary data attached to this event.
  */
-EventDispatcher.prototype.trigger = function(event, data) {
-    var queues = [];
-    if (this.listeners[event]) {
-        queues.push(this.listeners[event]);
+EventDispatcher.prototype.trigger = function(name, data) {
+    if (typeof name !== 'string' || !name) {
+        throw new RangeError('expected event name');
     }
-    if (this.onceListeners[event]) {
-        queues.push(this.onceListeners[event]);
-    }
-    for (var i = 0; i < queues.length; i++) {
-        var callbacks = queues[i];
-        for (var j = 0; j < callbacks.length; j++) {
-            callbacks[j].call(null, data, event);
+    var parts = name.split('.');
+    var name = parts[0];
+    if (this.events[name]) {
+        var deleteable = [];
+        for (var i = 0; i < this.events[name]; i++) {
+            var event = this.events[name][i];
+            if (!this.isApplicable('name', event)) {
+                continue;
+            }
+            event.callback.call(event.context, data);
+            if (event.once) {
+                deleteable.push(i);
+            }
+        }
+        for (var i = deleteable.length; i > 0; i) {
+            delete (this.events[name][--i]);
         }
     }
-    if (this.onceListeners[event]) {
-        delete this.onceListeners[event];
-    }
     return this;
+};
+
+/**
+ * Does the given trigger apply to the given handler?
+ * @param {string} trigger
+ * @param {Event} handler
+ */
+EventDispatcher.prototype.isApplicable = function(trigger, handler) {
+    var triggerNamespace = trigger.split('.');
+    var trigger = triggerNamespace.shift();
+    var handlerNamespace = handler.namespace;
+    if (!this.events[trigger]) {
+        return false;
+    }
+    if (!triggerNamespace.length) {
+        return true;
+    }
+    for (var j = 0; j < handlerNamespace.length; j++) {
+        if (handlerNamespace[j] !== triggerNamespace[j]) {
+            return false;
+        }
+    }
+    return true;
 };
 
 /**
@@ -71,12 +92,3 @@ EventDispatcher.prototype.trigger = function(event, data) {
  * @param {string} event The name of this event
  */
 
- /**
-  * An identifier for an event.
-  * If a '.' appears in this string, any text following it (including
-  *   subsequent . characters) will be treated as a "namespace". 
-  *   If a non-namespaced event fires, all handlers (namespaced or not)
-  *   will be called. However, if a namespaced event fires, only the
-  *   applicable handlers will be called.
-  * @typedef {string} EventDispatcher.event
-  */
