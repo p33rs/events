@@ -1,0 +1,11 @@
+{
+  "name": "p33rs-events",
+  "version": "1.0.0",
+  "homepage": "https://github.com/p33rs/events",
+  "authors": [
+    "p33rs <jon@peers.pw>"
+  ],
+  "description": "yet another event dispatcher",
+  "main": "EventDispatcher.js",
+  "license": "GPL-3.0"
+}
