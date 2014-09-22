@@ -21,8 +21,10 @@ function Foo() {
 
 ## Binding and Triggering Events
 
-You can either use `.on` or `.once` to bind an event. On will fire in perpetuity; Once will fire only once.
-As a convenience, you can pass a Context param, and we'll do the proxy-apply for you.
+You can either use `.on` or `.once` to bind an event. `.on` will fire in perpetuity; `.once` will fire only once.
+
+As a convenience, you can pass a Context as the third param, and we'll do the proxy-apply for you.
+
 Event names may be namespaced, jQuery style: Triggering `'action'` will fire handlers for `'action'` as well as
 `'action.namespace'`, while triggering `'action.namespace'` will fire handlers for `'action.namespace'` but not
 `'action'`.

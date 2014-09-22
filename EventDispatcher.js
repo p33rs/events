@@ -42,12 +42,12 @@ EventDispatcher.prototype.trigger = function(name, data) {
         throw new RangeError('expected event name');
     }
     var parts = name.split('.');
-    var name = parts[0];
-    if (this.events[name]) {
+    var prefix = parts[0];
+    if (this.events[prefix]) {
         var deleteable = [];
-        for (var i = 0; i < this.events[name]; i++) {
-            var event = this.events[name][i];
-            if (!this.isApplicable('name', event)) {
+        for (var i = 0; i < this.events[prefix].length; i++) {
+            var event = this.events[prefix][i];
+            if (!this.isApplicable(name, event)) {
                 continue;
             }
             event.callback.call(event.context, data);
@@ -56,7 +56,7 @@ EventDispatcher.prototype.trigger = function(name, data) {
             }
         }
         for (var i = deleteable.length; i > 0; i) {
-            delete (this.events[name][--i]);
+            this.events[prefix].splice(--i, 1);
         }
     }
     return this;
