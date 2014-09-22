@@ -74,10 +74,8 @@ EventDispatcher.prototype.isApplicable = function(trigger, handler) {
     if (!this.events[trigger]) {
         return false;
     }
-    if (!triggerNamespace.length) {
-        return true;
-    }
-    for (var j = 0; j < handlerNamespace.length; j++) {
+    // everything in the trigger namespace MUST appear in the handler namespace.
+    for (var j = 0; j < triggerNamespace.length; j++) {
         if (handlerNamespace[j] !== triggerNamespace[j]) {
             return false;
         }
