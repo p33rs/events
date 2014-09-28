@@ -6,6 +6,6 @@
     "p33rs <jon@peers.pw>"
   ],
   "description": "yet another event dispatcher",
-  "main": "EventDispatcher.js",
+  "main": "src/EventDispatcher.js",
   "license": "GPL-3.0"
 }
